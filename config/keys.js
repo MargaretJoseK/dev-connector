@@ -1,5 +1,6 @@
 module.exports = {
-  MongoURI: "mongodb://admin:admin123@ds125871.mlab.com:25871/margaret_db"
+  secretOrKey: "secret"
+  // mongoURI: "mongodb://admin:admin123@ds125871.mlab.com:25871/margaret_db"
 };
 
 // var mongoose = require('mongoose');
