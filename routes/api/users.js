@@ -7,6 +7,10 @@ const passport = require("passport");
 const User = require("../../models/User.js"); //load User model
 const keys = require("../../config/keys.js");
 
+//load input validation
+const validateRegisterInput = require("../../validation/register");
+const validateLoginInput = require("../../validation/login");
+
 const router = express.Router();
 
 //routes to page api/users/test and test users route
@@ -15,9 +19,16 @@ router.get("/test", (req, res) => res.json({ msg: "hello user" }));
 //routes to page api/users/register and  registers user
 
 router.post("/register", (req, res) => {
+  const { errors, isValid } = validateRegisterInput(req.body);
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   User.findOne({ email: req.body.email }).then(user => {
     if (user) {
-      return res.status(400).json({ email: "email exist" });
+      errors.email = "Email already exists";
+
+      return res.status(400).json(errors);
     } else {
       const avatar = gravatar.url(req.body.email, {
         s: "200", //size
@@ -50,13 +61,21 @@ router.post("/register", (req, res) => {
 //routes to page api/users/login and  logins user and return token
 
 router.post("/login", (req, res) => {
+  const { errors, isValid } = validateLoginInput(req.body);
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   const email = req.body.email;
   const password = req.body.password;
+
+  //to find user by email.
   User.findOne({ email })
     .then(user => {
       //to check user
       if (!user) {
-        return res.status(404).json({ email: "email not found" });
+        errors.email = "User not found";
+        return res.status(404).json(errors);
       }
       //to check password
       bcrypt.compare(password, user.password).then(isMatch => {
@@ -79,7 +98,8 @@ router.post("/login", (req, res) => {
             }
           );
         } else {
-          return res.status(404).json({ email: "password incorrect" });
+          errors.password = "Password incorrect.";
+          return res.status(404).json(erors);
         }
       });
     })
